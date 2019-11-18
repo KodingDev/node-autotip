@@ -13,6 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "big-integer": "^1.6.43",
+    "discord.js": "^11.5.1",
     "dotenv": "^8.0.0",
     "jsonfile": "^5.0.0",
     "mineflayer": "^2.7.5",

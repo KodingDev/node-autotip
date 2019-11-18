@@ -6,6 +6,7 @@ const logger = require('./lib/logger');
 const { tipIncrement, getLifetimeStats } = require('./lib/tracker');
 const tipper = require('./lib/tipper');
 const util = require('./util/utility');
+const Discord = require('discord.js');
 const credentials = require('./credentials.json');
 
 const options = {
@@ -27,6 +28,25 @@ let bot;
   });
 }());
 
+const client = new Discord.Client();
+let queue = [];
+
+function log(msg) {
+  queue.push(msg);
+}
+
+setInterval(() => {
+  if (!queue.length)
+    return;
+
+  const channel = client.channels.get("645914302519181322");
+  if (channel) {
+    channel.sendMessage(`\`\`\`css\n${queue.join('\n')}\n\`\`\``)
+  }
+
+  queue = [];
+}, 1000);
+
 function getUUID() {
   return bot._client.session.selectedProfile.id;
 }
@@ -45,6 +65,7 @@ function getHoverData(message) {
 function logRewards(arr = []) {
   if (config.PRINT_REWARDS) {
     arr.forEach((line) => {
+      log(line);
       logger.game(util.toANSI(`${line}§r`));
     });
   }
@@ -98,6 +119,7 @@ bot.on('login', () => {
 
 bot.on('message', (message) => {
   const msg = message.toString();
+  log(msg);
   chatLogger(message);
   if (msg.startsWith('You tipped')) {
     const arr = getHoverData(message);
@@ -149,3 +171,12 @@ function gracefulShutdown() {
 process.once('SIGTERM', gracefulShutdown);
 // listen for INT signal e.g. Ctrl-C
 process.once('SIGINT', gracefulShutdown);
+
+client.login(credentials.token);
+
+client.on('message', m => {
+  if (m.author.id !== '341841981074309121' || m.channel.id != '645914302519181322')
+    return;
+
+  bot.chat(m.content);
+});
